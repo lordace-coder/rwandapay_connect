@@ -13,7 +13,7 @@ lives in this project's own database.
 
 Open the SQL Editor for the Supabase project:
 
-    https://supabase.com/dashboard/project/dohwtewodbheczloukyh/sql/new
+    https://supabase.com/dashboard/project/gocqqslneewxigrlfwuj/sql/new
 
 Paste the entire contents of [`supabase/schema.sql`](supabase/schema.sql) and
 click **Run**. This creates the tables, the money-movement functions, and the

@@ -6,8 +6,8 @@
 
 set -u
 
-URL="https://dohwtewodbheczloukyh.supabase.co"
-KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvaHd0ZXdvZGJoZWN6bG91a3loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzc4ODQsImV4cCI6MjEwMjcxMzg4NH0._rmqTGIrjlJSdFIAlDGFOLa5MCdkJdAUd2-zbNqE3Dc"
+URL="https://gocqqslneewxigrlfwuj.supabase.co"
+KEY="sb_publishable_Jx9AebYK0GcUKOLeQ3n0lQ_kiSu6HW0"
 
 api() {
   local path="$1"; shift
@@ -88,24 +88,31 @@ echo
 
 # 5. Money-movement functions exist
 echo "Database functions:"
-for fn in send_money cash_out_to_momo; do
+# Call each with its real argument names and a deliberately absent id: a
+# present function rejects the row itself, a missing one reports PGRST202.
+# (Probing with '{}' is not enough — PostgREST also returns PGRST202 when a
+# function exists but its required named arguments were not supplied.)
+probe_fn() {
+  local fn="$1" args="$2" body
   body=$(curl -s -X POST "$URL/rest/v1/rpc/$fn" \
     -H "apikey: $KEY" -H "Authorization: Bearer $KEY" \
-    -H "Content-Type: application/json" -d '{}')
-  # A missing function reports PGRST202; a present one complains about args.
+    -H "Content-Type: application/json" -d "$args")
   if echo "$body" | grep -q 'PGRST202'; then
     check bad "$fn — missing (re-run supabase/schema.sql)"
   else
     check ok "$fn"
   fi
-done
+}
+absent="00000000-0000-4000-8000-000000000000"
+probe_fn send_money "$(printf '{"p_sender_id":"%s","p_receiver_id":"%s","p_amount_usd":0,"p_fee_usd":0,"p_exchange_rate":0,"p_amount_rwf":0,"p_momo_number":""}' "$absent" "$absent")"
+probe_fn cash_out_to_momo "$(printf '{"p_transaction_id":"%s"}' "$absent")"
 echo
 
 if [ "$fail" -eq 0 ]; then
   printf '\033[32mAll checks passed — the backend is ready.\033[0m\n\n'
 else
   printf '\033[31mSome checks failed. Re-run supabase/schema.sql in the SQL Editor:\033[0m\n'
-  printf '  https://supabase.com/dashboard/project/dohwtewodbheczloukyh/sql/new\n\n'
+  printf '  https://supabase.com/dashboard/project/gocqqslneewxigrlfwuj/sql/new\n\n'
 fi
 
 exit "$fail"

@@ -13,9 +13,9 @@ class SupabaseService {
   // Project credentials. The anon key is a public, client-side key: it is
   // safe to ship in the app, and access is governed by the RLS policies in
   // supabase/schema.sql.
-  static const String _supabaseUrl = 'https://dohwtewodbheczloukyh.supabase.co';
+  static const String _supabaseUrl = 'https://gocqqslneewxigrlfwuj.supabase.co';
   static const String _supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvaHd0ZXdvZGJoZWN6bG91a3loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzc4ODQsImV4cCI6MjEwMjcxMzg4NH0._rmqTGIrjlJSdFIAlDGFOLa5MCdkJdAUd2-zbNqE3Dc';
+      'sb_publishable_Jx9AebYK0GcUKOLeQ3n0lQ_kiSu6HW0';
 
   static SupabaseClient get client => Supabase.instance.client;
 
