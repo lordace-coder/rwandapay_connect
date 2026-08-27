@@ -129,15 +129,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     ).animate().fadeIn(delay: 400.ms),
                     const SizedBox(height: 40),
 
-                    // Feature pills
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    // Feature pills — wrapped so they reflow instead of
+                    // overflowing on narrow screens.
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 10,
+                      runSpacing: 10,
                       children: [
                         _featurePill('1.5% Fee', AppColors.orangeCard),
-                        const SizedBox(width: 10),
                         _featurePill('Live Rate', AppColors.blueCard),
-                        const SizedBox(width: 10),
                         _featurePill('Instant MoMo', AppColors.greenCard),
+                        _featurePill('Scan to Pay', AppColors.purpleCard),
                       ],
                     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2),
                     const SizedBox(height: 40),

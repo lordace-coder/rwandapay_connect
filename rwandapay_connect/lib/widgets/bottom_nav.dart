@@ -8,6 +8,8 @@ import '../screens/login_screen.dart';
 import '../screens/sender/sender_dashboard.dart';
 import '../screens/sender/send_money_screen.dart';
 import '../screens/receiver/receiver_dashboard.dart';
+import '../screens/receiver/my_qr_screen.dart';
+import '../screens/sender/scan_to_pay_screen.dart';
 import '../screens/admin/admin_dashboard.dart';
 import '../screens/profile/profile_screen.dart';
 
@@ -56,7 +58,11 @@ class AppBottomNav extends StatelessWidget {
           _navItem(context, Icons.send_rounded, 'Send', 1, () {
             _nav(context, const SendMoneyScreen());
           }),
-          _navItem(context, Icons.person_rounded, 'Profile', 2, () {
+          _navItem(context, Icons.qr_code_scanner_rounded, 'Scan', 2, () {
+            Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ScanToPayScreen()));
+          }),
+          _navItem(context, Icons.person_rounded, 'Profile', 3, () {
             Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
           }),
@@ -69,7 +75,11 @@ class AppBottomNav extends StatelessWidget {
           _navItem(context, Icons.home_rounded, 'Home', 0, () {
             if (currentIndex != 0) _nav(context, const ReceiverDashboard());
           }),
-          _navItem(context, Icons.person_rounded, 'Profile', 1, () {
+          _navItem(context, Icons.qr_code_rounded, 'My Code', 1, () {
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const MyQrScreen()));
+          }),
+          _navItem(context, Icons.person_rounded, 'Profile', 2, () {
             Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => const ProfileScreen()));
           }),

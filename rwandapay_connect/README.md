@@ -1,8 +1,9 @@
 # RwandaPay Connect
 
 A simulated cross-border remittance demo: money is sent from the United States
-to Rwanda, converted USD → RWF, and cashed out to MTN MoMo. Flutter web
-frontend, Supabase (Postgres) backend.
+to Rwanda, converted USD → RWF, and cashed out to MTN MoMo. A receiver can
+show a **QR payment code** and the sender pays it by **scanning with their
+camera**. Flutter web frontend, Supabase (Postgres) backend.
 
 No real payment processor, bank API, or MTN MoMo API is involved. All "money"
 lives in this project's own database.
@@ -32,6 +33,12 @@ Every line should be a green ✓. If not, the script says what to fix.
 
     flutter run -d chrome
 
+Scan to Pay uses the camera, which browsers only release on a **secure
+origin**. `flutter run -d chrome` serves from `localhost`, which counts as
+secure, so scanning works during development with no extra setup. If you
+instead deploy the built app, it must be served over HTTPS or the camera will
+not open — the scanner detects this and offers manual code entry instead.
+
 ## Demo accounts
 
 | Role | Email | Password | Starting balance |
@@ -55,6 +62,42 @@ transfer the sender makes is already there when the receiver logs in. You can
 also open a second browser window and stay logged in as two roles at once,
 then hit the refresh icon on each dashboard to watch the transfer land.
 
+## Scan to Pay
+
+Instead of picking a receiver from a list, the sender can point their camera at
+the receiver's QR code.
+
+**Receiver** — *Show My Payment Code* on the dashboard (or **My Code** in the
+bottom nav) displays their QR. A toggle turns it into a request for a specific
+amount, which prefills the sender's amount field. The raw code is printed
+under the QR with a copy button, for when a camera is not available.
+
+**Sender** — **Scan** on the dashboard (or in the bottom nav) opens the camera.
+When a code resolves, a sheet confirms who is being paid before anything is
+sent; continuing opens the normal Send Money screen with the receiver — and any
+requested amount — already filled in. The sender still reviews the fee and the
+RWF preview and presses **Confirm & Send**, so scanning replaces the lookup
+step, never the confirmation step.
+
+### What a code contains
+
+    rwandapay://pay?acct=RWC-RW-0001&name=Uwase%20Aline&amount=25.00
+
+`amount` is optional — without it the sender chooses the amount. Only `acct` is
+trusted: the app looks that account up in the database and uses the record it
+finds, so the name embedded in a code cannot misrepresent who gets paid.
+
+Codes are rejected, with an on-screen reason, when they are not RwandaPay codes,
+name an account that does not exist, belong to the scanner themselves, or belong
+to an account that cannot receive money.
+
+### If the camera will not open
+
+Permission denied, no webcam, or a non-HTTPS origin all land on the same
+fallback: the screen explains the problem and **Enter code manually** accepts a
+pasted code, which then behaves exactly like a scanned one. Worth knowing
+before presenting on an unfamiliar machine.
+
 ## Presentation run-through (Phase 8)
 
 1. **Sender** — log in as James Whitmore. Balance reads $500.00.
@@ -69,6 +112,13 @@ then hit the refresh icon on each dashboard to watch the transfer land.
 To reset for a second run, re-run `supabase/schema.sql` — it restores the
 starting $500 / 0 / 0 balances and clears the transaction history.
 
+### Demonstrating Scan to Pay
+
+Open two browser windows side by side — the receiver's QR on one, the sender's
+scanner on the other — and scan one screen with the other device's camera. With
+a single machine and no second camera, use **Enter code manually** with the code
+copied from under the receiver's QR; the rest of the flow is identical.
+
 ## Architecture
 
     lib/
@@ -79,7 +129,10 @@ starting $500 / 0 / 0 balances and clears the transaction history.
         auth_provider.dart         Current user + account
         transaction_provider.dart  Transactions, receivers, balances
       screens/                     Login, sender, receiver, admin, profile
-      models/                      AppUser, Account, AppTransaction, MomoPayout
+        sender/scan_to_pay_screen.dart  Camera QR scanner
+        receiver/my_qr_screen.dart      The receiver's own QR code
+      models/                      AppUser, Account, AppTransaction,
+                                   MomoPayout, PaymentQr
 
 Screens read cached lists from the providers during `build` and call the
 provider's `load*` methods from `initState` and after actions.
@@ -95,6 +148,13 @@ the browser is closed mid-transfer.
 `send_money` also locks the sender's account row and rejects a transfer that
 exceeds the balance, so double-clicking Send cannot overdraw the account.
 
+## Tests
+
+    flutter test
+
+Covers QR payload encoding and parsing — including malformed and hostile codes
+— and that the login screen renders. `flutter analyze` reports no issues.
+
 ## Fees and exchange rate
 
 - Fee: 1.5% of the amount sent, minimum $1.00
@@ -102,8 +162,8 @@ exceeds the balance, so double-clicking Send cannot overdraw the account.
 
 ## A note on security
 
-The anon key in `supabase_service.dart` is a public client-side key — shipping
-it in a web app is normal and expected. Access is controlled by the row-level
+The publishable key in `supabase_service.dart` is a public client-side key —
+shipping it in a web app is normal and expected. Access is controlled by the row-level
 security policies in `schema.sql`, which for this demo allow full read and
 write to anyone with the key.
 

@@ -130,7 +130,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     children: [
                       Expanded(
                           child: _coloredStat(
-                        '${rwfFormat.format(txnProvider.totalRwfPaidOut)}',
+                        rwfFormat.format(txnProvider.totalRwfPaidOut),
                         'RWF Paid Out',
                         Icons.money_rounded,
                         AppColors.greenCard,
@@ -346,7 +346,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         NumberFormat('#,##0').format(txn.exchangeRateUsed)),
                     Container(
                         width: 1, height: 24, color: AppColors.cardBorder),
-                    _col('RWF', '${rwf.format(txn.amountRwf)}'),
+                    _col('RWF', rwf.format(txn.amountRwf)),
                   ],
                 ),
               ),

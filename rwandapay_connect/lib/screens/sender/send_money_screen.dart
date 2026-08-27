@@ -10,7 +10,19 @@ import '../../theme/app_theme.dart';
 import 'sender_dashboard.dart';
 
 class SendMoneyScreen extends StatefulWidget {
-  const SendMoneyScreen({super.key});
+  /// Receiver chosen ahead of time — set when arriving from Scan to Pay, so
+  /// the sender does not have to pick them from the list again.
+  final AppUser? presetReceiver;
+
+  /// Amount the receiver's QR code requested, prefilled into the field. The
+  /// sender can still edit it before confirming.
+  final double? presetAmount;
+
+  const SendMoneyScreen({
+    super.key,
+    this.presetReceiver,
+    this.presetAmount,
+  });
 
   @override
   State<SendMoneyScreen> createState() => _SendMoneyScreenState();
@@ -28,6 +40,10 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedReceiver = widget.presetReceiver;
+    if (widget.presetAmount != null) {
+      _amountController.text = widget.presetAmount!.toStringAsFixed(2);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final txnProvider = context.read<TransactionProvider>();
       txnProvider.fetchExchangeRate();
@@ -49,7 +65,14 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
 
     final auth = context.watch<AuthProvider>();
     final txn = context.watch<TransactionProvider>();
-    final receivers = txn.receivers;
+    // A receiver arrived at by QR scan is shown immediately, even if the
+    // full receiver list is still loading.
+    final receivers = [
+      ...txn.receivers,
+      if (_selectedReceiver != null &&
+          !txn.receivers.any((r) => r.id == _selectedReceiver!.id))
+        _selectedReceiver!,
+    ];
     final account = auth.currentAccount;
     final curr = NumberFormat.currency(symbol: '\$');
     final rwf = NumberFormat('#,##0', 'en_US');
@@ -106,6 +129,55 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // Confirms to the sender that this screen was reached
+                        // by scanning, and who the code belonged to.
+                        if (widget.presetReceiver != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.greenCard,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.success
+                                        .withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                      Icons.qr_code_scanner_rounded,
+                                      color: AppColors.successDark,
+                                      size: 18),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Scanned QR code',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.darkText)),
+                                      Text(
+                                          'Paying ${widget.presetReceiver!.fullName}',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 11,
+                                              color: AppColors.darkText
+                                                  .withValues(alpha: 0.6))),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ).animate().fadeIn(duration: 400.ms),
+                          const SizedBox(height: 16),
+                        ],
                         // Rate pill
                         Container(
                           padding: const EdgeInsets.all(16),
@@ -436,6 +508,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
       senderId: auth.currentUser!.id,
       receiverId: _selectedReceiver!.id,
       amountUsd: _amount,
+      momoNumber: _selectedReceiver!.phone,
     );
     if (!mounted) return;
 

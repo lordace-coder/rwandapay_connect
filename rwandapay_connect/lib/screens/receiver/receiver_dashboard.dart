@@ -8,6 +8,7 @@ import '../../providers/transaction_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/bottom_nav.dart';
+import 'my_qr_screen.dart';
 
 class ReceiverDashboard extends StatefulWidget {
   const ReceiverDashboard({super.key});
@@ -172,6 +173,34 @@ class _ReceiverDashboardState extends State<ReceiverDashboard> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) => const MyQrScreen())),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: AppColors.successDark,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.qr_code_rounded, size: 20),
+                                const SizedBox(width: 10),
+                                Text('Show My Payment Code',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ).animate().fadeIn(duration: 500.ms, delay: 100.ms).slideY(begin: 0.08),
@@ -333,7 +362,7 @@ class _ReceiverDashboardState extends State<ReceiverDashboard> {
                                       height: 24,
                                       color: AppColors.cardBorder),
                                   _mini('Rate',
-                                      '${NumberFormat('#,##0').format(txn.exchangeRateUsed)}'),
+                                      NumberFormat('#,##0').format(txn.exchangeRateUsed)),
                                   Container(
                                       width: 1,
                                       height: 24,

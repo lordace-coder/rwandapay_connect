@@ -1,11 +1,11 @@
 {
-    "name": "rwandapay_connect",
-    "short_name": "rwandapay_connect",
+    "name": "RwandaPay Connect",
+    "short_name": "RwandaPay",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#1B2A4A",
+    "theme_color": "#1B2A4A",
+    "description": "Cross-border remittance from the United States to Rwanda, with Scan to Pay and MTN MoMo cash-out.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

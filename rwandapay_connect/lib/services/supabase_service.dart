@@ -10,11 +10,11 @@ class SupabaseService {
   static bool _initialized = false;
   static bool get isInitialized => _initialized;
 
-  // Project credentials. The anon key is a public, client-side key: it is
-  // safe to ship in the app, and access is governed by the RLS policies in
+  // Project credentials. The publishable key is a public, client-side key: it
+  // is safe to ship in the app, and access is governed by the RLS policies in
   // supabase/schema.sql.
   static const String _supabaseUrl = 'https://gocqqslneewxigrlfwuj.supabase.co';
-  static const String _supabaseAnonKey =
+  static const String _supabasePublishableKey =
       'sb_publishable_Jx9AebYK0GcUKOLeQ3n0lQ_kiSu6HW0';
 
   static SupabaseClient get client => Supabase.instance.client;
@@ -24,7 +24,7 @@ class SupabaseService {
 
     await Supabase.initialize(
       url: _supabaseUrl,
-      anonKey: _supabaseAnonKey,
+      publishableKey: _supabasePublishableKey,
     );
     _initialized = true;
   }
@@ -59,6 +59,19 @@ class SupabaseService {
     final response =
         await client.from('users').select().eq('role', 'receiver');
     return (response as List).map((r) => _userFromMap(r)).toList();
+  }
+
+  /// Looks up a user by the account number encoded in a payment QR code.
+  /// Returns null when no such account exists, so the scanner can report an
+  /// unrecognised code instead of failing.
+  static Future<AppUser?> getUserByAccountNumber(String accountNumber) async {
+    final response = await client
+        .from('users')
+        .select()
+        .eq('account_number', accountNumber)
+        .maybeSingle();
+    if (response == null) return null;
+    return _userFromMap(response);
   }
 
   static Future<List<AppUser>> getNonAdminUsers() async {

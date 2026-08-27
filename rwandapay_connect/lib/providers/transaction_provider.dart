@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/account.dart';
 import '../models/transaction.dart';
 import '../models/user.dart';
+import '../models/payment_qr.dart';
 import '../services/supabase_service.dart';
 import '../services/exchange_rate_service.dart';
 
@@ -91,6 +92,35 @@ class TransactionProvider extends ChangeNotifier {
 
   Account? accountForUser(String userId) => _accountsByUserId[userId];
 
+  /// Resolves a scanned QR payload to the receiver it names.
+  ///
+  /// Returns null when the account number matches nobody, or when it matches
+  /// a user who cannot be paid (an admin, or the sender scanning their own
+  /// code) — [error] explains which, so the scanner can show it.
+  Future<AppUser?> resolveScannedCode(PaymentQr code,
+      {required String scanningUserId}) async {
+    _error = null;
+    try {
+      final user =
+          await SupabaseService.getUserByAccountNumber(code.accountNumber);
+
+      if (user == null) {
+        _error = 'No RwandaPay account matches this code.';
+      } else if (user.id == scanningUserId) {
+        _error = 'That is your own code — scan the person you want to pay.';
+      } else if (user.role != 'receiver') {
+        _error = 'This code does not belong to an account you can pay.';
+      } else {
+        return user;
+      }
+    } catch (e) {
+      _error = 'Could not look up that code. Check your connection.';
+      debugPrint('resolveScannedCode failed: $e');
+    }
+    notifyListeners();
+    return null;
+  }
+
   Future<void> fetchExchangeRate() async {
     _loadingRate = true;
     notifyListeners();
@@ -113,6 +143,7 @@ class TransactionProvider extends ChangeNotifier {
     required String senderId,
     required String receiverId,
     required double amountUsd,
+    String? momoNumber,
   }) async {
     _processing = true;
     _error = null;
@@ -122,6 +153,8 @@ class TransactionProvider extends ChangeNotifier {
     try {
       final fee = calculateFee(amountUsd);
       final amountRwf = calculateRwfAmount(amountUsd);
+      // Prefer the number the caller supplies — a receiver reached by QR scan
+      // may not be in the cached list yet.
       final receiver = _receivers.where((u) => u.id == receiverId).firstOrNull;
 
       txn = await SupabaseService.createTransaction(
@@ -131,7 +164,7 @@ class TransactionProvider extends ChangeNotifier {
         feeUsd: fee,
         exchangeRate: _currentRate,
         amountRwf: amountRwf,
-        momoNumber: receiver?.phone,
+        momoNumber: momoNumber ?? receiver?.phone,
       );
     } catch (e) {
       _error = _friendlyError(e, fallback: 'Transfer failed. Please try again.');

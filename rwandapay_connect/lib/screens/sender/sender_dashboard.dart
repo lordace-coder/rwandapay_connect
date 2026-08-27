@@ -9,6 +9,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/bottom_nav.dart';
 import 'send_money_screen.dart';
+import 'scan_to_pay_screen.dart';
 
 class SenderDashboard extends StatefulWidget {
   const SenderDashboard({super.key});
@@ -154,32 +155,82 @@ class _SenderDashboardState extends State<SenderDashboard> {
                             style: GoogleFonts.poppins(
                                 fontSize: 13, color: Colors.white38)),
                         const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 54,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (_) => const SendMoneyScreen()));
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.gold,
-                              foregroundColor: AppColors.darkText,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: SizedBox(
+                                height: 54,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const SendMoneyScreen()));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.gold,
+                                    foregroundColor: AppColors.darkText,
+                                    padding: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16)),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.send_rounded, size: 20),
+                                      const SizedBox(width: 10),
+                                      Text('Send Money',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.send_rounded, size: 20),
-                                const SizedBox(width: 10),
-                                Text('Send Money',
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600)),
-                              ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: SizedBox(
+                                height: 54,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const ScanToPayScreen()));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Colors.white.withValues(alpha: 0.15),
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.zero,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16)),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                          Icons.qr_code_scanner_rounded,
+                                          size: 20),
+                                      const SizedBox(width: 8),
+                                      Text('Scan',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ],
                     ),
@@ -392,7 +443,7 @@ class _SenderDashboardState extends State<SenderDashboard> {
                                       height: 24,
                                       color: AppColors.cardBorder),
                                   _miniStat('Rate',
-                                      '${NumberFormat('#,##0').format(txn.exchangeRateUsed)}'),
+                                      NumberFormat('#,##0').format(txn.exchangeRateUsed)),
                                   Container(
                                       width: 1,
                                       height: 24,
