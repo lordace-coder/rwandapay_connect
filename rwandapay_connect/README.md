@@ -3,7 +3,8 @@
 A simulated cross-border remittance demo: money is sent from the United States
 to Rwanda, converted USD → RWF, and cashed out to MTN MoMo. A receiver can
 show a **QR payment code** and the sender pays it by **scanning with their
-camera**. Flutter web frontend, Supabase (Postgres) backend.
+camera**. Flutter frontend — runs on the web and on Android — with a Supabase
+(Postgres) backend.
 
 No real payment processor, bank API, or MTN MoMo API is involved. All "money"
 lives in this project's own database.
@@ -31,13 +32,48 @@ Every line should be a green ✓. If not, the script says what to fix.
 
 ### 3. Run the app
 
-    flutter run -d chrome
+The app runs on the web and on Android.
 
-Scan to Pay uses the camera, which browsers only release on a **secure
-origin**. `flutter run -d chrome` serves from `localhost`, which counts as
-secure, so scanning works during development with no extra setup. If you
-instead deploy the built app, it must be served over HTTPS or the camera will
-not open — the scanner detects this and offers manual code entry instead.
+    flutter run -d chrome     # web
+    flutter run -d <device>   # Android phone or emulator
+
+`flutter devices` lists what is currently attached.
+
+**Camera access.** Scan to Pay needs a camera, and the two platforms gate it
+differently:
+
+- **Web** — browsers only release the camera on a *secure origin*.
+  `flutter run -d chrome` serves from `localhost`, which counts as secure, so
+  scanning works in development with no setup. A deployed build must be served
+  over HTTPS or the camera will not open.
+- **Android** — the app asks for camera permission the first time you open
+  Scan to Pay. Granting it is enough; nothing else to configure.
+
+Either way, if the camera cannot be opened the scanner says so and offers
+manual code entry instead, so the demo is never blocked.
+
+### Building for Android
+
+    flutter build apk --debug      # fastest, for sideloading onto a phone
+    flutter build apk --release    # smaller, minified
+
+The APK lands in `build/app/outputs/flutter-apk/`. Copy it to a phone and open
+it (Android will ask you to allow installing from unknown sources).
+
+Release builds are signed with the **debug keystore** — deliberate, so the
+build works on any machine without a keystore to hand. That is fine for
+sideloading and for this demo; a Play Store upload would need a real signing
+config in `android/app/build.gradle.kts`.
+
+The first Android build is slow (10–20 minutes on a modest laptop) because
+Gradle downloads its toolchain and compiles everything from scratch; later
+builds reuse both and take a fraction of that. `android/gradle.properties`
+caps the Gradle JVM at 2 GB — the Flutter template ships `-Xmx8G`, which is
+more than some laptops physically have and sends them into swap mid-build.
+Raise it if you build on a machine with plenty of RAM.
+
+Running on a real phone is the best way to demo Scan to Pay: show the
+receiver's QR on the laptop screen and scan it with the phone.
 
 ## Demo accounts
 
@@ -114,10 +150,14 @@ starting $500 / 0 / 0 balances and clears the transaction history.
 
 ### Demonstrating Scan to Pay
 
-Open two browser windows side by side — the receiver's QR on one, the sender's
-scanner on the other — and scan one screen with the other device's camera. With
-a single machine and no second camera, use **Enter code manually** with the code
-copied from under the receiver's QR; the rest of the flow is identical.
+Best version, and what the Android build is for: run the app on a **phone**,
+logged in as James (sender). On the laptop, log in as Uwase and open **Show My
+Payment Code**. Point the phone at the laptop screen — it scans, confirms who is
+being paid, and drops into Send Money with her details filled in.
+
+With only a laptop, open two browser windows side by side and use **Enter code
+manually**, pasting the code printed under the receiver's QR. The rest of the
+flow is identical.
 
 ## Architecture
 
